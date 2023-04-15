@@ -1,0 +1,144 @@
+{% extends 'game/wordle.html' %}
+{% block extra %}
+<style>
+    #wordle_board .letter:hover{background-color:grey;}
+    #wordle_board .letter:focus{background-color:dimgrey;}
+    #keyboard .letter_key:visited{background-color:dimgrey;}
+    .label{
+        background-color:white;
+        margin-top:8px;
+        user-select:none;
+    }
+    .proba{
+        margin:4px;
+        background-color:lightgrey;
+    }
+    .proba h1{
+        height:48px;
+        color:dimgrey;
+        text-align:center;
+        user-select:none;
+    }
+    #assist_keys .row{background-color:#eee;}
+    #assist_words{
+        width:50%;
+        background-color: #aaa;
+    }
+    .assist_key{
+        color: dimgrey;
+        margin:12px;
+        background-color: lightgrey;
+        text-align:center;
+        user-select:none;
+    }
+    .assist_key:hover{color:lightgrey;background-color:grey;}
+    .assist_key:active{background-color:#444;}
+    .color_block{
+        color:#eee;
+        background-color:{{ gamedata.colors.grey }};
+    }
+    .color_block:hover{color:white;}
+</style>
+
+<div class="container justify-content-md-center" id="assist_keys">
+    <div class="row rounded">
+        <div class="col-md-3">
+            <center>
+            <div class="rounded label">
+                <h1>Assist</h1>
+            </div>
+            </center>
+        </div>
+        <div class="col-md-auto">
+            <div class="rounded label">
+                <h2 id="letter_block" style="margin-top:12px;min-width:36px;text-align:center;">g</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="rounded assist_key color_block" id="color_block" name="grey" onclick="switch_color(this);">
+                <h2>Grey</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="rounded assist_key" onclick="reset();">
+                <h2>Reset</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container justify-content-md-center rounded" id="assist_words">
+    <div class="row justify-content-md-center">
+        {% for proba_word in proba_words %}
+        <div class="col-md-auto rounded proba">
+            <h1>{{ proba_word }}</h1>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    var colors={
+        'blank':'{{ gamedata.colors.blank }}',
+        'grey':'{{ gamedata.colors.grey }}',
+        'yellow':'{{ gamedata.colors.yellow }}',
+        'green':'{{ gamedata.colors.green }}'
+    };
+    var input={'value':'g','color':'grey'};
+    var blocknames=['Blank','Grey','Yellow','Green'];
+    var init_letters=$('#wordle_board').find('.letter');
+    var names={{ gamedata.names|safe }};
+    for(var i=0;i<init_letters.length;i++)
+        init_letters.eq(i).attr('name',names[i]);
+    init_letters.on('click',function(){
+        $(this).css('background-color',colors[input['color']]);
+        $(this).attr('name',$('#color_block').attr('name'));
+        var value=input['color']=='blank'?'·':input['value'];
+        $(this).find('.letter_value').html(value);
+    });
+    function input_wordle(obj){
+        $('#letter_block').html($(obj).find('h1').html());
+        obj=$(obj).find('h1').html();
+        input['value']=obj;
+    }
+    function delete_wordle(){
+        var letters=$('#wordle_board').find('.letter');
+        for(var i=letters.length-1;i>=0;i--){
+            var letter=letters.eq(i);
+            if(letter.find('.letter_value').html()!='·'){
+                letter.find('.letter_value').html('·');
+                letter.css('background-color','{{ gamedata.colors.blank }}');
+                letter.attr('name','blank');
+                break;
+            }
+        }
+    }
+    function enter_wordle(){
+        var letters=$('#wordle_board').find('.letter');
+        var inputs='';
+        for(var i=0;i<letters.length;i++){
+            var letter=letters.eq(i);
+            inputs+=i+','+letter.find('.letter_value').html()+','+letter.attr('name')+'|';
+        }
+        $.post(document.location.pathname,{'inputs':String(inputs)},function(res){
+            if(res.op)layermsg(1,res.remark,true,1000);
+            else if(res.online)layermsg(3,res.remark);
+            else prompt_login();
+        })
+    }
+    function switch_color(obj){
+        var colorkeys=Object.keys(colors)
+        var i=(colorkeys.indexOf(input['color'])+1)%colorkeys.length;
+        input['color']=colorkeys[i];
+        $(obj).find('h2').text(blocknames[i]);
+        $(obj).css('background-color',colors[input['color']]);
+        $(obj).attr('name',input['color']);
+    }
+    function reset(){
+        $.post(document.location.pathname,{'op':'reset','inputs':''},function(res){
+            if(res.op)layermsg(1,res.remark,true,1000);
+            else if(res.online)layermsg(3,res.remark);
+            else prompt_login();
+        });
+    }
+</script>
+{% endblock extra %}

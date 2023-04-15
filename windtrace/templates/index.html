@@ -1,0 +1,59 @@
+{% extends 'frame.html' %}
+{% block body %}
+<style>
+    .jumbotron-size{
+        width: 480px;
+        height: 280px;
+        float:left;
+        margin:10px;
+    }
+    .h1-size{
+        font-size:36px;
+        margin-top:-20px;
+    }
+    .lead-size{
+        font-size:20px;
+        margin-top:10px;
+    }
+</style>
+<center>
+<div class="person">
+    <h1 class="display-4" style="margin:20px;user-select:none;"><b>Personal Digital Portfolio</b></h1> 
+    <div class="cards" style="width: 1000px;background-color:grey;">
+        {% for tech in techs %}
+        <div class="jumbotron jumbotron-fluid jumbotron-size shadow">
+            <div class="container">
+                <h1 class="display-4 h1-size">
+                    <b>{{ tech.Label }}</b>
+                </h1>
+                <p class="lead lead-size overflow-auto">
+                    {{ tech.Detail }}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="cards" style="width:720px;margin-top:20px;">
+    <h1 class="display-4" style="margin:20px;user-select:none;"><b>Technology Demonstration</b></h1>
+    <div style="width:680px;">
+        {% for game in games %}
+        <div class="card shadow" style="width:320px;margin:10px;float:left;">
+            <img src="{{ game.Image }}" class="card-img-top">
+            <div class="card-body">
+            <h5 class="card-title">{{ game.Label }}</h5>
+            <p class="card-text overflow-auto" style="height:240px;">{{ game.Detail }}</p>
+            {% if online %}
+                <a href="{{ game.Url }}" class="btn btn-secondary">Play</a>
+            {% else %}
+                <button type="button" class="btn btn-secondary" onclick="prompt_login();">Play</button>
+            {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</center>
+{% include 'content/comment.html' %}
+{% endblock body %}

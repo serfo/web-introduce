@@ -1,0 +1,35 @@
+{% extends 'frame.html' %}
+{% block body %}
+{% if reject %}
+<script>
+    layermsg(3,'{{ remark }}');
+    $('#login_form').modal();
+</script>
+{% endif %}
+<center>
+<div class="cards" style="width:720px;margin-top:20px;">
+    <div class="row justify-content-md-center">
+        <div class="col-md-auto">
+            <h1>Click the Play button to start the game!</h1>
+        </div>
+    </div>
+    <div style="width:680px;">
+        {% for game in games %}
+        <div class="card shadow" style="width:320px;margin:10px;float:left;">
+            <img src="{{ game.Image }}" class="card-img-top">
+            <div class="card-body">
+            <h5 class="card-title">{{ game.Label }}</h5>
+            <p class="card-text overflow-auto" style="height:240px;">{{ game.Detail }}</p>
+            {% if online %}
+                <a href="{{ game.Url }}" class="btn btn-secondary">Play</a>
+            {% else %}
+                <button type="button" class="btn btn-secondary" onclick="prompt_login();">Play</button>
+            {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</center>
+{% include 'content/comment.html' %}
+{% endblock body %}

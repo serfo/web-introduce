@@ -1,0 +1,87 @@
+<script>
+    var settings=['update_password','notify_setting'];
+    function update_password(){
+        data={
+            'obj':'Password',
+            'OldPassword':$('#oldpassword').val(),
+            'NewPassword':$('#newpassword').val()
+        }
+        if(reject_null(data))return;
+        $.post('/update',data,function(res){
+            if(res.op)layermsg(1,res.remark);
+            else layermsg(3,res.remark);
+        })
+    }
+    function switch_setting(obj){
+        if(settings.indexOf(obj)==-1)return;
+        for(var i in settings)
+            $('#'+settings[i]).css('display','none');
+        $('#'+obj).css('display','block');
+    }
+    function update_notify(){
+        var data={
+            'obj':'Notify',
+            'Notify':$('#notify_select').val()
+        };
+        if(data['Notify']=='')return;
+        $.post('/update',data,function(res){
+            if(res.op)layermsg(1,res.remark);
+            else layermsg(3,res.remark);
+        });
+    }
+</script>
+<div class="modal fade" id="setting" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Setting</h5>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" style="margin:4px;">
+                    <li class="nav-item">
+                    <button type="button" class="nav-link active" id="update_password_tab"
+                        onclick="switch_setting('update_password');">Change Password</a>
+                    </li>
+                    <li class="nav-item">
+                    <button type="button" class="nav-link" id="notify_setting_tab"
+                        onclick="switch_setting('notify_setting');">Notify Setting</a>
+                    </li>
+                </ul>
+                <div id="update_password">
+                    <div class="form-group">
+                        <label for="oldpassword">Old Password</label>
+                        <input type="password" class="form-control" id="oldpassword">
+                    </div>
+                    <div class="form-group">
+                        <label for="newpassword">New Password</label>
+                        <input type="password" class="form-control" id="newpassword">
+                    </div>
+                    <button onclick="update_password();" type="button"
+                        class="btn btn-secondary">Update</button>
+                </div>
+                <div id="notify_setting" style="display:none;">
+                    <div class="form-group">
+                        <label for="notify_input">Notify Mode</label>
+                        <div class="input-group" id="notify_input">
+                            <select class="custom-select" id="notify_select">
+                                <option value="1">Display quantity.</option>
+                                <option value="2">Displays the origin.</option>
+                                <option value="3">No display.</option>
+                            </select>
+                            <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="update_notify();">Ok</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#notify_select').val({{ user.Notify }});
+</script>

@@ -1,0 +1,93 @@
+<style>
+    #zone .username:hover{background-color:grey;color:white;}
+    #lastlogin h6{font-size:12px;}
+</style>
+<script>
+    var username='{{ user.Name }}';
+    function update_name(){
+        var newname=$('#editname').val();
+        if(newname==''){layermsg(3,'The name cannot be empty.');return;}
+        var length=newname.replace(/[^\u0000-\u00ff]/g,"aaa").length;
+        if(length>24){layermsg(3,'The length of the name cannot exceed 24.');return;}
+        if(newname==username){layermsg(3,'The name has not changed.');return;}
+        $.post('/update',{'obj':'Name','Name':newname},function(res){
+            if(res.op){
+                layermsg(1,res.remark);
+                $('.username').text(newname);
+                username=newname;
+            }else layermsg(3,res.remark);
+        });
+    }
+    function edit_name(obj){
+        if(obj=='edit'){
+            $('#username').css('display','none');
+            $('.editname').css('display','block');
+        }
+        if(obj=='stop'){
+            $('.editname').css('display','none');
+            $('#username').css('display','block');
+        }
+    }
+</script>
+<div class="modal fade" id="zone" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content update">
+            <nav class="navbar navbar-expand-sm">
+                <ul class="navbar-nav">
+                    <li class="nav-item" data-toggle="modal" data-target="#avatar_modal">
+                        <img src="{{ user.Avatar }}" class="rounded-circle content_avatar" style="width:120px;">
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <div class="modal-header" style="height:72px;">
+                            <h4 class="modal-title" style="margin-right:4px;">User:</h4>
+                            <h4 class="modal-title">
+                                <div id="username" onclick="edit_name('edit');">
+                                    <p class="username" style="margin-left:8px;">{{ user.Name }}</p>
+                                </div>
+                                <div class="editname" style="display:none;">
+                                    <div class="input-group">
+                                        <input type="name" class="form-control" id="editname" value="{{ user.Name }}">
+                                        <div class="input-group-append">
+                                            <button onclick="update_name();edit_name('stop');" type="button"
+                                                class="btn btn-secondary">Ok</button>
+                                            <button onclick="edit_name('stop');" type="button"
+                                                class="btn btn-light">Back</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h4>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <div class="modal-body">
+                <nav class="navbar navbar-expand-sm" id="email">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <h6>My Email :</h6>
+                        </li>
+                        <li class="nav-item" style="margin-left:4px;">
+                            <h6 style="font-weight:normal;">{{ user.Email }}</h6>
+                        </li>
+                    </ul>
+                </nav>
+                <nav class="navbar navbar-expand-sm" id="lastlogin" style="height:30px;">
+                    <ul class="navbar-nav" style="height:100%;">
+                        <li class="nav-item">
+                            <h6>Last login time :</h6>
+                        </li>
+                        <li class="nav-item" style="margin-left:4px;">
+                            <h6 style="font-weight:normal;">{{ user.Lastlogin }}</h6>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'content/avatar.html' %}

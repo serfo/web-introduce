@@ -1,0 +1,128 @@
+{% extends 'frame.html' %}
+{% block body %}
+<style>
+    .letter{
+        width:72px;
+        margin:2px;
+        color:white;
+        text-align: center;
+        user-select:none;
+    }
+    .letter_value{
+        font-size:40px;
+        height:56px;
+        margin-top: 8px;
+    }
+    .letter_key{
+        width:50px;
+        height:64px;
+    }
+    .key{
+        margin:2px;
+        background-color: lightgrey;
+    }
+    .key h1{height:48px;color:white;}
+    .key:hover{background-color:grey;}
+    .key:active{background-color:#444;}
+</style>
+<div class="container" id="wordle_board" style="margin-top:20px;">
+    {% for word in gamedata.feedback %}
+    <div class="row justify-content-md-center word">
+        {% for letter in word %}
+        <div class="col-md-auto letter rounded" style="background-color:{{ letter.color }};">
+            <h1 class="letter_value">{{ letter.value }}</h1>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="container justify-content-md-center" id="keyboard" style="margin-top:20px;">
+    <div class="row justify-content-md-center">
+        <div class="col-md-10" id="q_p"></div>
+    </div>
+    <div class="row justify-content-md-center">
+        <div class="col-md-9" id="a_l"></div>
+    </div>
+    <div class="row justify-content-md-center">
+        <div class="col-md-2 key letter rounded-lg" id="enter"
+            {% if gamedata.result != 'right' %}onclick="enter_wordle();"{% endif %}>
+            <h1>Enter</h1>
+        </div>
+        <div class="col-md-7" id="z_m"></div>
+        <div class="col-md-2 key letter rounded-lg" id="withdraw"
+            {% if gamedata.result != 'right' %}onclick="delete_wordle();"{% endif %}>
+            <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-backspace" viewBox="0 0 16 16">
+                <path d="M5.83 5.146a.5.5 0 0 0 0 .708L7.975 8l-2.147 2.146a.5.5 0 0 0 .707.708l2.147-2.147 2.146 2.147a.5.5 0 0 0 .707-.708L9.39 8l2.146-2.146a.5.5 0 0 0-.707-.708L8.683 7.293 6.536 5.146a.5.5 0 0 0-.707 0z"></path>
+                <path d="M13.683 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7.08a2 2 0 0 1-1.519-.698L.241 8.65a1 1 0 0 1 0-1.302L5.084 1.7A2 2 0 0 1 6.603 1h7.08zm-7.08 1a1 1 0 0 0-.76.35L1 8l4.844 5.65a1 1 0 0 0 .759.35h7.08a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1h-7.08z"></path>
+            </svg>
+            </h1>
+        </div>
+    </div>
+</div>
+
+<script>
+    function prepare_keyboard(){
+        var keys={
+            'q_p':['q','w','e','r','t','y','u','i','o','p'],
+            'a_l':['a','s','d','f','g','h','j','k','l'],
+            'z_m':['z','x','c','v','b','n','m']
+        };
+        var rowhead='<div class="row">';
+        var colhead='<a class="col key letter letter_key rounded-lg"';
+        colhead+=' {% if gamedata.result != "right" %}onclick="input_wordle(this);{% endif %}"><h1>';
+        var coltail='</h1></a>'
+        var rowtail='</div>'
+        var rows={'q_p':rowhead,'a_l':rowhead,'z_m':rowhead};
+        for(var r in keys){
+            for(var i=0;i<keys[r].length;i++)
+                rows[r]+=colhead+keys[r][i]+coltail;
+            rows[r]+=rowtail;
+            $('#'+r).html(rows[r]);
+        }
+    }
+    prepare_keyboard();
+    {% if gamedata.result == 'start' %}
+        layermsg(1,'Game started!',false);
+    {% endif %}
+    {% if gamedata.result != 'right' %}
+    var inputs=[];
+    var letter_keys=['q','w','e','r','t','y','u','i','o','p',
+        'a','s','d','f','g','h','j','k','l',
+        'z','x','c','v','b','n','m'];
+    function input_wordle(obj){
+        if(inputs.length>=5)return;
+        obj=$(obj).find('h1').text();
+        if(letter_keys.indexOf(obj)==-1)return;
+        inputs.push(obj);
+        var letter=$('.word').eq({{ gamedata.guessnum }}).find('.letter').eq(inputs.length-1);
+        letter.find('h1').html(obj);
+        letter.css('background-color','{{ gamedata.colors.input }}');
+    }
+    function delete_wordle(){
+        if(inputs.length==0)return;
+        var letter=$('.word').eq({{ gamedata.guessnum }}).find('.letter').eq(inputs.length-1);
+        inputs.pop();
+        letter.find('h1').html('·');
+        letter.css('background-color','{{ gamedata.colors.blank }}');
+    }
+    function enter_wordle(){
+        if(inputs.length!=5)return;
+        for(var i in inputs)
+            if(letter_keys.indexOf(inputs[i])==-1)return;
+        $.post(document.location.pathname,{'inputs':inputs.join('')},function(res){
+            if(res.op){
+                if(res.gamedata.result=='wrong')layermsg(5,res.remark,true,1000);
+                if(res.gamedata.result=='right')layermsg(6,res.remark,true);
+                if(res.gamedata.result=='start')layermsg(-1,res.remark);
+            }
+            else if(res.online)layermsg(3,res.remark);
+            else prompt_login();
+        });
+    }
+    {% endif %}
+</script>
+{% block extra %}{% endblock extra %}
+{% include 'content/comment.html' %}
+{% endblock body %}

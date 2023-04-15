@@ -1,0 +1,77 @@
+<script>
+    function default_avatar(i){
+        var imgs=$('#avatar_modal').find('.modal-header').find('img');
+        var imgi=imgs.eq(i);
+        for(var j=0;j<{{ default_avatars|length }};j++)
+            if(j!=i)
+                imgs.eq(j).removeClass('border border-dark');
+        imgi.addClass('border border-dark');
+        var url=imgi.attr('src');
+        if(url!=null)
+            $.post('/upload',{obj:'default_avatar',url:url},function(res){
+                if(res.op){
+                    $('.my_avatar').attr('src',res.url)
+                    $('.content_avatar').attr('src',res.content_url)
+                    layermsg(1,res.remark);
+                }
+                else layermsg(1,res.remark);
+            });
+    }
+</script>
+<div class="modal fade" id="avatar_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Default avatar</h4>
+            </div>
+            <div class="modal-header">
+                {% for url in default_avatars %}
+                <img src="../{{ url }}" class="rounded-circle"
+                    style="width:100px;margin:4px;" onclick="default_avatar({{ loop.index0 }});">
+                {% endfor %}
+            </div>
+            <div class="modal-header">
+                <h4 class="modal-title">Custom avatar</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input id="upload_avatar" type="file" name="file"
+                        class="custom-file-input" style="width:100px;height:14px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        initFileInput("upload_avatar");
+    });
+    function initFileInput(ctrlName){
+        var control = $('#' + ctrlName);
+        control.fileinput({
+            uploadUrl: '/upload',
+            allowedFileExtensions: ['png','jpg'],
+            uploadAsync: true,
+            uploadExtraData: {'obj':'Avatar'},
+            minFileCount: 1,
+            maxFileCount: 1,
+            showClose: false,
+            showUpload: true, showRemove: false,
+            showPreview: true, showCancel:false,
+            showCaption: true, dropZoneEnabled: true,
+            initialPreviewShowDelete: true,
+            maxFileSize: 2048,
+            minImageWidth: 64,
+            minImageHeight: 64,
+            maxImageWidth: 1024,
+            maxImageHeight: 1024,
+            browseClass:'btn btn-light',
+            uploadClass:'btn btn-secondary',
+        }).on("fileuploaded",function(event,data,previewId,index){
+            if(data.response.op)layermsg(1,data.response.remark,true);
+            else layermsg(3,data.response.remark);
+        }).on('fileerror',function(event,data,msg){
+            layermsg(3,'Upload failed');
+        })
+    };
+</script>
