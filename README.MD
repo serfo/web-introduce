@@ -2,7 +2,7 @@
 ```
 python manage.py
 ```
-```
+###
 文件说明：
 mysql.py为数据库连接文件
 requirements.txt为python依赖库，可根据内容自行
